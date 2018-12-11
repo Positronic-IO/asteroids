@@ -680,10 +680,10 @@ class MyGame(object):
                                 (self.width//2, self.height//2))
 
             # draw lives
-            for i in range(self.lives):
-                draw_centered(self.lives_image, self.screen,\
-                    (self.lives_image.get_width()*i*1.2+40,\
-                        self.lives_image.get_height()//2))
+            # for i in range(self.lives):
+            #     draw_centered(self.lives_image, self.screen,\
+            #         (self.lives_image.get_width()*i*1.2+40,\
+            #             self.lives_image.get_height()//2))
 
         else:
             # draw the welcome texts
