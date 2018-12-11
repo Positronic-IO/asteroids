@@ -15,7 +15,8 @@ import os
 import datetime
 import random
 import pygame
-
+import table
+import numpy as np
 
 ##################################
 # General Helper functions (START)
@@ -133,7 +134,12 @@ class Spaceship(GameObject):
                                self.angle)
         self.active_missiles.append(new_missile)
 
-
+class Puck(GameObject):
+    """Resembles a puck"""
+    def __init__(self, frame):
+        super(Puck, self).__init__(frame, load_image_convert_alpha('puck.png'))
+        label, confidence, boundingBox = frame
+        self.position = list([int(np.mean(np.asarray(boundingBox)[:,0])/0.8), int(np.mean(np.asarray(boundingBox)[:,1])/0.8)])
 
 class Missile(GameObject):
     """Resembles a missile"""
@@ -216,8 +222,10 @@ class MyGame(object):
         pygame.mixer.init()
         pygame.mixer.pre_init(44100, -16, 2, 2048)
         pygame.init()
+        table.init()
 
         # set up a 800 x 600 window
+        self.pucks = []
         self.width = 800
         self.height = 600
         self.screen = pygame.display.set_mode((self.width, self.height))
@@ -408,6 +416,7 @@ class MyGame(object):
                         # if there are any missiles on the screen, process them
                         if len(self.spaceship.active_missiles) > 0:
                             self.missiles_physics()
+                        self.puck_physics()
 
                         # if there are any rocks, do their physics
                         if len(self.rocks) > 0:
@@ -490,6 +499,49 @@ class MyGame(object):
             Due to lack of time, I can't implement any of them, but they are
             not hard to do at all."""
 
+
+    def puck_physics(self):
+        """Do all the physics of missiles"""
+        
+        # if there are any active missiles
+        frames, _ = table.get_frame()
+        self.pucks = [Puck(frame) for frame in frames]
+
+        for puck in self.pucks:
+            # check the collision with each rock
+            for rock in self.rocks:
+                if rock.size == "big":
+                    # if the missile hits a big rock, destroy it,
+                    # make two medium sized rocks and give 20 scores
+                    if distance(puck.position, rock.position) < 80:
+                        self.rocks.remove(rock)
+                        self.make_rock("normal", \
+                            (rock.position[0]+10, rock.position[1]))
+                        self.make_rock("normal", \
+                            (rock.position[0]-10, rock.position[1]))
+                        self.score += 20
+
+                elif rock.size == "normal":
+                    # if the missile hits a medium sized rock, destroy it,
+                    # make two small sized rocks and give 50 scores
+                    if distance(puck.position, rock.position) < 55:
+                        self.rocks.remove(rock)
+                        self.make_rock("small", \
+                            (rock.position[0]+10, rock.position[1]))
+                        self.make_rock("small", \
+                            (rock.position[0]-10, rock.position[1]))
+                        self.score += 50
+                else:
+                    # if the missile hits a small rock, destroy it,
+                    # make one big rock if there are less than 10 rocks
+                    # on the screen, and give 100 scores
+                    if distance(puck.position, rock.position) < 30:
+                        self.rocks.remove(rock)
+                        
+                        if len(self.rocks) < 10:
+                            self.make_rock()
+                        
+                        self.score += 100
 
     def missiles_physics(self):
         """Do all the physics of missiles"""
@@ -578,6 +630,9 @@ class MyGame(object):
 
             # draw the spaceship
             self.spaceship.draw_on(self.screen)
+
+            for puck in self.pucks:
+                puck.draw_on(self.screen)
 
             # if there are any active missiles draw them
             if len(self.spaceship.active_missiles) >  0:
