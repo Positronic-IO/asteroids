@@ -17,7 +17,7 @@ thresh = 0.1
 configPath = "./puck.cfg"
 weightPath = "./puck.weights"
 metaPath= "./puck.data"
-live = True
+live = False
 black_background = True 
 full_screen = True
 vs = None
@@ -168,7 +168,7 @@ def init():
     if live:
         vs = WebcamVideoStream(src=0).start()
     else:
-        vs = cv2.VideoCapture('data/puck/data.mp4')
+        vs = cv2.VideoCapture('data.mp4')
 
 def array_to_image(arr):
     import numpy as np
