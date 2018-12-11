@@ -38,6 +38,11 @@ def draw_centered(surface1, surface2, position):
     rect = rect.move(position[0]-rect.width//2, position[1]-rect.height//2)
     surface2.blit(surface1, rect)
 
+def draw_left(surface1, surface2, position):
+    """Draw surface1 onto surface2 right-aligned"""
+    rect = surface1.get_rect()
+    rect = rect.move(position[0], position[1])
+    surface2.blit(surface1, rect)
 
 def rotate_center(image, rect, angle):
         """rotate the given image around its center & return an image & rect"""
@@ -54,6 +59,17 @@ def distance(p, q):
 # General Helper functions (END)
 ################################
 
+class Calibration(object):
+    def __init__(self):
+        display = pygame.display.Info()
+        self.center = [int(display.current_w / 2), int(display.current_h / 2)]
+        self.top_left = [0, 0]
+        self.top_right = [int(display.current_w), 0]
+        self.bottom_left = [0, int(display.current_h)]
+        self.bottom_right = [int(display.current_w), int(display.current_h)]
+
+    def str(self):
+        return str([self.center, self.top_left, self.top_right, self.bottom_left, self.bottom_right])
 
 class GameObject(object):
     """All game objects have a position and an image"""
@@ -134,6 +150,7 @@ class Spaceship(GameObject):
                                self.angle)
         self.active_missiles.append(new_missile)
 
+
 class Puck(GameObject):
     """Resembles a puck"""
     def __init__(self, frame):
@@ -141,7 +158,16 @@ class Puck(GameObject):
         label, confidence, boundingBox = frame
         display_info = pygame.display.Info()
         stretch = 640 / display_info.current_w
-        self.position = list([int(np.mean(np.asarray(boundingBox)[:,0])/stretch), int(np.mean(np.asarray(boundingBox)[:,1])/stretch)])
+        def scale_puck(box, axis, stretch):
+            ret = np.mean(np.asarray(box)[:,axis]) # average of coordinates along axis
+            ret = ret / stretch # stretch 640x480 frame to screen
+            half = display_info.current_w / 2 if axis == 0 else display_info.current_h
+            ret = int(ret) # cast to int
+            return ret
+
+        x = scale_puck(boundingBox, 0, stretch)
+        y = scale_puck(boundingBox, 1, stretch)
+        self.position = list([x, y])
 
 class Missile(GameObject):
     """Resembles a missile"""
@@ -227,6 +253,7 @@ class MyGame(object):
         table.init()
 
         display_info = pygame.display.Info()
+        self.calibration = Calibration()
 
         # set up a 800 x 600 window
         self.pucks = []
@@ -372,7 +399,19 @@ class MyGame(object):
                 if self.state != MyGame.WELCOME:
 
                     keys = pygame.key.get_pressed()
-                
+
+                    if len(self.pucks) > 0:
+                        if keys[pygame.K_c]:
+                            self.calibration.center = self.pucks[0].position
+                        if keys[pygame.K_a]:
+                            self.calibration.top_left = self.pucks[0].position
+                        if keys[pygame.K_s]:
+                            self.calibration.top_right = self.pucks[0].position
+                        if keys[pygame.K_z]:
+                            self.calibration.bottom_left = self.pucks[0].position
+                        if keys[pygame.K_x]:
+                            self.calibration.bottom_right = self.pucks[0].position
+
                     if keys[pygame.K_SPACE]:
                         new_time = datetime.datetime.now()
                         if new_time - self.fire_time > \
@@ -632,6 +671,7 @@ class MyGame(object):
 
     def draw(self):
         """Update the display"""
+        global screen_table_ratio
         # everything we draw now is to a buffer that is not displayed
         self.screen.fill(self.bg_color)
     
@@ -680,6 +720,17 @@ class MyGame(object):
             draw_centered(scores_text, self.screen,\
                 (self.width-scores_text.get_width(), scores_text.get_height()+\
                                                         10))
+
+            # create and display the calibration metrics
+            def draw_text(text, offset):
+                text_render = self.medium_font.render(text, True, (0, 155, 0))
+                draw_left(text_render, self.screen, (self.width-text_render.get_width(), text_render.get_height()+offset))
+
+            draw_text("center {}".format(self.calibration.center), 40)
+            draw_text("top-left {}".format(self.calibration.top_left), 80)
+            draw_text("top-right {}".format(self.calibration.top_right), 120)
+            draw_text("bottom-left {}".format(self.calibration.bottom_left), 160)
+            draw_text("bottom-right {}".format(self.calibration.bottom_right), 200)
 
             # if the game is over, display the game over text
             if self.state == MyGame.GAME_OVER or self.state == MyGame.STARTING:
