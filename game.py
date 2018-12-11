@@ -386,6 +386,9 @@ class MyGame(object):
                     if self.state == MyGame.PLAYING:
                         # if the game is going on
 
+                        if keys[pygame.K_q] or keys[pygame.K_ESCAPE]:
+                            running = False
+
                         if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
                             # when pressing "d" or "right arrow" rotate
                             # the spaceship clockwise by 10 degrees
