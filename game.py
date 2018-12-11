@@ -609,13 +609,13 @@ class MyGame(object):
 
 
                 # if the rock hits the spaceship, die once
-                if distance(rock.position, self.spaceship.position) < \
-                        self.death_distances[rock.size]:
-                    self.die()
+                #if distance(rock.position, self.spaceship.position) < \
+                #        self.death_distances[rock.size]:
+                #    self.die()
 
                 # if the rock goes out of screen and there are less than
                 # 10 rocks on the screen, create a new rock with the same size
-                elif distance(rock.position, (self.width/2, self.height/2)) > \
+                if distance(rock.position, (self.width/2, self.height/2)) > \
                      math.sqrt((self.width/2)**2 + (self.height/2)**2):
 
                     self.rocks.remove(rock)
@@ -632,7 +632,7 @@ class MyGame(object):
         if self.state != MyGame.WELCOME:
 
             # draw the spaceship
-            self.spaceship.draw_on(self.screen)
+            #self.spaceship.draw_on(self.screen)
 
             for puck in self.pucks:
                 puck.draw_on(self.screen)
