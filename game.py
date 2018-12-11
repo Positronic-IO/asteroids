@@ -139,7 +139,9 @@ class Puck(GameObject):
     def __init__(self, frame):
         super(Puck, self).__init__(frame, load_image_convert_alpha('puck.png'))
         label, confidence, boundingBox = frame
-        self.position = list([int(np.mean(np.asarray(boundingBox)[:,0])/0.8), int(np.mean(np.asarray(boundingBox)[:,1])/0.8)])
+        display_info = pygame.display.Info()
+        stretch = 640 / display_info.current_w
+        self.position = list([int(np.mean(np.asarray(boundingBox)[:,0])/stretch), int(np.mean(np.asarray(boundingBox)[:,1])/stretch)])
 
 class Missile(GameObject):
     """Resembles a missile"""
@@ -224,11 +226,13 @@ class MyGame(object):
         pygame.init()
         table.init()
 
+        display_info = pygame.display.Info()
+
         # set up a 800 x 600 window
         self.pucks = []
-        self.width = 800
-        self.height = 600
-        self.screen = pygame.display.set_mode((self.width, self.height))
+        self.width = display_info.current_w
+        self.height = display_info.current_h
+        self.screen = pygame.display.set_mode((self.width, self.height), pygame.FULLSCREEN)
 
         # use a black background
         self.bg_color = 0, 0, 0
