@@ -344,7 +344,7 @@ class MyGame(object):
         self.missiles = []
 
         # start the sound track loop
-        self.soundtrack.play(-1, 0, 1000)
+        #self.soundtrack.play(-1, 0, 1000)
 
         # set the state to PLAYING
         self.state = MyGame.PLAYING
