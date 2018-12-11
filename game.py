@@ -347,6 +347,8 @@ class MyGame(object):
         self.spaceship = Spaceship((self.width//2, self.height//2))
         self.missiles = []
 
+        pygame.mouse.set_visible(False)
+
         # start the sound track loop
         #self.soundtrack.play(-1, 0, 1000)
 
@@ -485,6 +487,7 @@ class MyGame(object):
         self.soundtrack.stop()
         # play dying sound and wait for it to end before continuing
         self.lives -= 1
+        pygame.mouse.set_visible(True)
         self.counter = 0        
         self.state = MyGame.DYING
         self.die_sound.play()
