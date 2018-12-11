@@ -278,7 +278,7 @@ class MyGame(object):
         self.welcome_asteroids = self.big_font.render("Asteroids",\
                                                 True, (255, 215, 0))
         self.welcome_desc =  self.medium_font.render(\
-            "[Click anywhere/press Enter] to begin!", True, (35, 107, 142))
+            "Science Center", True, (35, 107, 142))
 
 
     def do_init(self):
