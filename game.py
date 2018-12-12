@@ -17,6 +17,8 @@ import random
 import pygame
 import table
 import numpy as np
+import cv2
+from imutils import perspective
 
 ##################################
 # General Helper functions (START)
@@ -62,14 +64,17 @@ def distance(p, q):
 class Calibration(object):
     def __init__(self):
         display = pygame.display.Info()
-        self.center = [int(display.current_w / 2), int(display.current_h / 2)]
-        self.top_left = [0, 0]
-        self.top_right = [int(display.current_w), 0]
-        self.bottom_left = [0, int(display.current_h)]
-        self.bottom_right = [int(display.current_w), int(display.current_h)]
+        self.show = False
+
+        self.offset_x = -495 
+        self.offset_y = -800 
+
+        self.scale_x = 3.5
+        self.scale_y = 3.85
+# [-495, -800, 3.4999999999999947, 3.8499999999999934]
 
     def str(self):
-        return str([self.center, self.top_left, self.top_right, self.bottom_left, self.bottom_right])
+        return str([self.offset_x, self.offset_y, self.scale_x, self.scale_y])
 
 class GameObject(object):
     """All game objects have a position and an image"""
@@ -153,21 +158,37 @@ class Spaceship(GameObject):
 
 class Puck(GameObject):
     """Resembles a puck"""
-    def __init__(self, frame):
-        super(Puck, self).__init__(frame, load_image_convert_alpha('puck.png'))
+    def __init__(self, detection):
+        super(Puck, self).__init__(detection, load_image_convert_alpha('puck.png'))
+        frame, image, calibration = detection
         label, confidence, boundingBox = frame
-        display_info = pygame.display.Info()
-        stretch = 640 / display_info.current_w
-        def scale_puck(box, axis, stretch):
+        # display_info = pygame.display.Info()
+        # stretch = 640 / display_info.current_w
+        # scale x,y from image.shape to rect
+        # offset x,y by rect
+        def get_coord(box, axis):
             ret = np.mean(np.asarray(box)[:,axis]) # average of coordinates along axis
-            ret = ret / stretch # stretch 640x480 frame to screen
-            half = display_info.current_w / 2 if axis == 0 else display_info.current_h
             ret = int(ret) # cast to int
             return ret
 
-        x = scale_puck(boundingBox, 0, stretch)
-        y = scale_puck(boundingBox, 1, stretch)
+        def scale_puck(x, y, shape):
+            puck_img = np.zeros(shape)
+            x = min(shape[0] - 1, x)
+            y = min(shape[1] - 1, y)
+            puck_img[x,y] = 1
+            resized = cv2.resize(puck_img, (int(shape[1]*calibration.scale_x), int(shape[0]*calibration.scale_y)))
+            found = np.argwhere(resized[:,:,0])
+            ret = found[0]
+            ret[0] += calibration.offset_y 
+            ret[1] += calibration.offset_x
+            return int(ret[0]), int(ret[1])
+
+        x = get_coord(boundingBox, 0)
+        y = get_coord(boundingBox, 1)
+        x, y = scale_puck(x, y, image.shape)
+
         self.position = list([x, y])
+        print(calibration.str())
 
 class Missile(GameObject):
     """Resembles a missile"""
@@ -252,6 +273,7 @@ class MyGame(object):
         pygame.init()
         table.init()
 
+        self.draw_pucks = False
         display_info = pygame.display.Info()
         self.calibration = Calibration()
 
@@ -400,17 +422,27 @@ class MyGame(object):
 
                     keys = pygame.key.get_pressed()
 
+                    if keys[pygame.K_p]:
+                        self.draw_pucks = not self.draw_pucks
                     if len(self.pucks) > 0:
-                        if keys[pygame.K_c]:
-                            self.calibration.center = self.pucks[0].position
                         if keys[pygame.K_a]:
-                            self.calibration.top_left = self.pucks[0].position
+                            self.calibration.scale_x -= 0.05
                         if keys[pygame.K_s]:
-                            self.calibration.top_right = self.pucks[0].position
-                        if keys[pygame.K_z]:
-                            self.calibration.bottom_left = self.pucks[0].position
-                        if keys[pygame.K_x]:
-                            self.calibration.bottom_right = self.pucks[0].position
+                            self.calibration.scale_y -= 0.05
+                        if keys[pygame.K_d]:
+                            self.calibration.scale_x += 0.05
+                        if keys[pygame.K_w]:
+                            self.calibration.scale_y += 0.05
+                        if keys[pygame.K_UP]:
+                            self.calibration.offset_y += 5
+                        if keys[pygame.K_DOWN]:
+                            self.calibration.offset_y -= 5
+                        if keys[pygame.K_RIGHT]:
+                            self.calibration.offset_x += 5
+                        if keys[pygame.K_LEFT]:
+                            self.calibration.offset_x -= 5
+                    if keys[pygame.K_w]:
+                        self.calibration.show = not self.calibration.show
 
                     if keys[pygame.K_SPACE]:
                         new_time = datetime.datetime.now()
@@ -553,8 +585,8 @@ class MyGame(object):
         """Do all the physics of missiles"""
         
         # if there are any active missiles
-        frames, _ = table.get_frame()
-        self.pucks = [Puck(frame) for frame in frames]
+        frames, image = table.get_frame()
+        self.pucks = [Puck( (frame, image, self.calibration)) for frame in frames]
 
         for puck in self.pucks:
             # check the collision with each rock
@@ -681,8 +713,9 @@ class MyGame(object):
             # draw the spaceship
             #self.spaceship.draw_on(self.screen)
 
-            for puck in self.pucks:
-                puck.draw_on(self.screen)
+            if self.draw_pucks:
+                for puck in self.pucks:
+                    puck.draw_on(self.screen)
 
             # if there are any active missiles draw them
             if len(self.spaceship.active_missiles) >  0:
@@ -726,11 +759,8 @@ class MyGame(object):
                 text_render = self.medium_font.render(text, True, (0, 155, 0))
                 draw_left(text_render, self.screen, (self.width-text_render.get_width(), text_render.get_height()+offset))
 
-            draw_text("center {}".format(self.calibration.center), 40)
-            draw_text("top-left {}".format(self.calibration.top_left), 80)
-            draw_text("top-right {}".format(self.calibration.top_right), 120)
-            draw_text("bottom-left {}".format(self.calibration.bottom_left), 160)
-            draw_text("bottom-right {}".format(self.calibration.bottom_right), 200)
+            if self.calibration.show:
+                draw_text(self.calibration.str(), 40)
 
             # if the game is over, display the game over text
             if self.state == MyGame.GAME_OVER or self.state == MyGame.STARTING:
@@ -742,6 +772,8 @@ class MyGame(object):
             #     draw_centered(self.lives_image, self.screen,\
             #         (self.lives_image.get_width()*i*1.2+40,\
             #             self.lives_image.get_height()//2))
+            rect = self.screen.get_rect()
+            self.screen.blit(self.screen, rect)
 
         else:
             # draw the welcome texts
