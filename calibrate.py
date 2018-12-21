@@ -10,14 +10,15 @@ import cv2
 from skimage import io, draw
 import numpy as np
 
-offset_x = 650
-offset_y = 465
-scale_x = 1.689
-scale_y = 1.999
+# x=510 oy=640 sx=1.7099999999999849 sy=2.0499999999999776
+offset_x = 510 
+offset_y = 640 
+scale_x = 1.71
+scale_y = 2.05
 
 # ox=650 oy=465 sx=1.6899999999999853 sy=1.9999999999999787
 
-crop_baseline = [140, 105, 195, 75]
+crop_baseline = [0, 0, 0, 0]
 crop = crop_baseline
 
 def sample(probs):
@@ -137,7 +138,7 @@ black_background = True
 output = False 
 engaged = True
 full_screen = True
-rotate = 90
+rotate = 0
 
 def array_to_image(arr):
     import numpy as np

@@ -13,11 +13,19 @@ import numpy as np
 netMain = None
 metaMain = None
 altNames = None
-thresh = 0.1
-configPath = "./puck.cfg"
-weightPath = "./puck.weights"
-metaPath= "./puck.data"
+thresh = 0.75
+two = True
+if two:
+    configPath = "./tiny.cfg"
+    weightPath = "./tiny.weights"
+    metaPath= "./two-pucks.data"
+else:
+    configPath = "./puck.cfg"
+    weightPath = "./puck.weights"
+    metaPath= "./puck.data"
+
 live = True
+rotate = 0
 black_background = True 
 full_screen = True
 vs = None
@@ -243,11 +251,17 @@ def detection_to_puck(detection):
     return label, confidence, boundingBox
 
 def get_frame():
-    global live, vs, netMain, metaMain, thresh
+    global live, vs, netMain, metaMain, thresh, rotate
     if live:
         frame = vs.read()
     else:
         _, frame = vs.read()
+    
+    if rotate != 0:
+        rows,cols = frame.shape[:2]
+        M = cv2.getRotationMatrix2D((cols/2,rows/2),rotate,1)
+        frame = cv2.warpAffine(frame,M,(cols,rows))
+
     detections = detect(netMain, metaMain, frame, thresh)
     return detections, frame
 
@@ -264,6 +278,7 @@ def main():
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
  
     crop_baseline = [120, 140, 80, 215]
+    crop_baseline = [0,0,0,0]
     crop = crop_baseline
 
     while(True):

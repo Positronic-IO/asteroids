@@ -64,15 +64,18 @@ def distance(p, q):
 class Calibration(object):
     def __init__(self):
         display = pygame.display.Info()
-        self.show = False
+        self.show = False 
 
-        self.offset_x = -495 
-        self.offset_y = -800 
+        # x# =510 oy=640 sx=1.7099999999999849 sy=2.0499999999999776
 
-        self.scale_x = 3.5
-        self.scale_y = 3.85
+        self.offset_x = -635 
+        self.offset_y = -515
+
+        self.scale_x = 3.45
+        self.scale_y = 3.4
 # [-495, -800, 3.4999999999999947, 3.8499999999999934]
-
+# -495, -725, 3.5, 3.650000000000001
+# [-495, -735, 3.5, 3.65]
     def str(self):
         return str([self.offset_x, self.offset_y, self.scale_x, self.scale_y])
 
@@ -273,7 +276,8 @@ class MyGame(object):
         pygame.init()
         table.init()
 
-        self.draw_pucks = False
+        self.draw_ship = False
+        self.draw_pucks = True 
         display_info = pygame.display.Info()
         self.calibration = Calibration()
 
@@ -422,6 +426,8 @@ class MyGame(object):
 
                     keys = pygame.key.get_pressed()
 
+                    if keys[pygame.K_y]:
+                        self.draw_ship = not self.draw_ship
                     if keys[pygame.K_p]:
                         self.draw_pucks = not self.draw_pucks
                     if len(self.pucks) > 0:
@@ -711,7 +717,8 @@ class MyGame(object):
         if self.state != MyGame.WELCOME:
 
             # draw the spaceship
-            #self.spaceship.draw_on(self.screen)
+            if self.draw_ship:
+                self.spaceship.draw_on(self.screen)
 
             if self.draw_pucks:
                 for puck in self.pucks:
@@ -751,8 +758,8 @@ class MyGame(object):
             scores_text = self.medium_font.render(str(self.score),\
                                                     True, (0, 155, 0))
             draw_centered(scores_text, self.screen,\
-                (self.width-scores_text.get_width(), scores_text.get_height()+\
-                                                        10))
+                (self.width-scores_text.get_width()-130, scores_text.get_height()+\
+                                                        170))
 
             # create and display the calibration metrics
             def draw_text(text, offset):
