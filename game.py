@@ -310,7 +310,7 @@ class MyGame(object):
         self.lives_image = load_image_convert_alpha('spaceship-off.png')
 
         # Setup a timer to refresh the display FPS times per second
-        self.FPS = 30
+        self.FPS = 60
         pygame.time.set_timer(self.REFRESH, 1000//self.FPS)
 
         # a dictionary of death distances of different rock sizes
