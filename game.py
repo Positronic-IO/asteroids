@@ -179,23 +179,17 @@ class Puck(GameObject):
             return ret
 
         def scale_puck(x, y, shape):
-            puck_img = np.zeros(shape)
-            x = min(shape[0] - 1, x)
-            y = min(shape[1] - 1, y)
-            puck_img[x,y] = 1
-            resized = cv2.resize(puck_img, (int(shape[1]*calibration.scale_x), int(shape[0]*calibration.scale_y)))
-            found = np.argwhere(resized[:,:,0])
-            ret = found[0]
-            ret[0] += calibration.offset_y 
-            ret[1] += calibration.offset_x
-            return int(ret[0]), int(ret[1])
+            new_shape = (int(shape[1]*calibration.scale_x), int(shape[0]*calibration.scale_y))
+            x = int((x * new_shape[0] / shape[0]) + calibration.offset_x)
+            y = int((y * new_shape[1] / shape[1]) + calibration.offset_y)
+            return x, y
 
         x = get_coord(boundingBox, 0)
         y = get_coord(boundingBox, 1)
         x, y = scale_puck(x, y, image.shape)
 
         self.position = list([x, y])
-        print(calibration.str())
+        #print(calibration.str())
 
 class Missile(GameObject):
     """Resembles a missile"""
