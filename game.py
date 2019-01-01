@@ -447,7 +447,7 @@ class MyGame(object):
                             self.calibration.offset_x += 5
                         if keys[pygame.K_LEFT]:
                             self.calibration.offset_x -= 5
-                    if keys[pygame.K_w]:
+                    if keys[pygame.K_c]:
                         self.calibration.show = not self.calibration.show
 
                     if keys[pygame.K_SPACE]:
