@@ -274,6 +274,7 @@ class MyGame(object):
         pygame.init()
         table.init()
 
+        self.mute = True
         self.draw_ship = False
         self.draw_pucks = True 
         display_info = pygame.display.Info()
@@ -401,7 +402,8 @@ class MyGame(object):
         pygame.mouse.set_visible(False)
 
         # start the sound track loop
-        #self.soundtrack.play(-1, 0, 1000)
+        if not self.mute:
+            self.soundtrack.play(-1, 0, 1000)
 
         # set the state to PLAYING
         self.state = MyGame.PLAYING
@@ -459,7 +461,7 @@ class MyGame(object):
                             self.spaceship.fire()
 
                             # play the sound
-                            self.missile_sound.play()
+                            self.play_sound(self.missile_sound)
 
                             # record the current fire time
                             self.fire_time = new_time
@@ -546,13 +548,17 @@ class MyGame(object):
             else:
                 pass # an event type we don't handle            
 
+    def play_sound(sound):
+        if self.mute:
+            return
+        sound.play()
 
     def game_over(self):
         """Losing a life"""
         self.soundtrack.stop()
         # play game over sound and wait for it to end before continuing
         self.state = MyGame.GAME_OVER
-        self.gameover_sound.play()
+        self.play_sound(self.gameover_sound)
         delay = int((self.gameover_sound.get_length()+1)*1000)
         pygame.time.set_timer(MyGame.RESTART, delay)
 
@@ -565,7 +571,7 @@ class MyGame(object):
         pygame.mouse.set_visible(True)
         self.counter = 0        
         self.state = MyGame.DYING
-        self.die_sound.play()
+        self.play_sound(self.die_sound)
         delay = int((self.die_sound.get_length()+1)*1000)
         pygame.time.set_timer(MyGame.START, delay)
 
