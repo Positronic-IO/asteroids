@@ -13,6 +13,7 @@ import math
 import sys
 import os
 import datetime
+import time
 import random
 import pygame
 import table
@@ -71,13 +72,16 @@ class Calibration(object):
         self.offset_x = -635 
         self.offset_y = -515
 
-        self.scale_x = 3.45
-        self.scale_y = 3.4
-# [-495, -800, 3.4999999999999947, 3.8499999999999934]
+        self.last_time = time.time()
+        self.fps = 0
+
 # -495, -725, 3.5, 3.650000000000001
 # [-495, -735, 3.5, 3.65]
     def str(self):
-        return str([self.offset_x, self.offset_y, self.scale_x, self.scale_y])
+        new_time = time.time()
+        self.fps = int(1 / (new_time - self.last_time))
+        self.last_time = new_time
+        return str([self.fps, self.offset_x, self.offset_y, self.scale_x, self.scale_y])
 
 class GameObject(object):
     """All game objects have a position and an image"""
