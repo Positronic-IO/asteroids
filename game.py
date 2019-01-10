@@ -181,14 +181,30 @@ class Puck(GameObject):
             return ret
 
         def scale_puck(x, y, shape):
-            new_shape = (int(shape[1]*calibration.scale_x), int(shape[0]*calibration.scale_y))
-            x = int((x * new_shape[0] / shape[0]) + calibration.offset_x)
-            y = int((y * new_shape[1] / shape[1]) + calibration.offset_y)
+            x = min(shape[0] - 1, x) # x can't exceed width
+            y = min(shape[1] - 1, y) # y can't exceed height
+            new_shape = (int(shape[0]*calibration.scale_y), int(shape[1]*calibration.scale_x))
+            x = int((x * new_shape[0] / shape[0]) + calibration.offset_y)
+            y = int((y * new_shape[1] / shape[1]) + calibration.offset_x)
             return x, y
+
+        # def scale_puck_old(x, y, shape):
+        #     puck_img = np.zeros(shape)
+        #     x = min(shape[0] - 1, x)
+        #     y = min(shape[1] - 1, y)
+        #     puck_img[x,y] = 1
+        #     resized = cv2.resize(puck_img, (int(shape[1]*calibration.scale_x), int(shape[0]*calibration.scale_y)))
+        #     found = np.argwhere(resized[:,:,0])
+        #     ret = found[0]
+        #     ret[0] += calibration.offset_y 
+        #     ret[1] += calibration.offset_x
+        #     return int(ret[0]), int(ret[1])
 
         x = get_coord(boundingBox, 0)
         y = get_coord(boundingBox, 1)
+        # old_x, old_y = scale_puck_old(x, y, image.shape)
         x, y = scale_puck(x, y, image.shape)
+        # print(str((x,y)), str((old_x, old_y)), str((x-old_x, y-old_y)))
 
         self.position = list([x, y])
         #print(calibration.str())
@@ -286,7 +302,9 @@ class MyGame(object):
         self.pucks = []
         self.width = display_info.current_w
         self.height = display_info.current_h
-        self.screen = pygame.display.set_mode((self.width, self.height), pygame.FULLSCREEN)
+        
+        self.screen = pygame.display.set_mode((1024, 768), pygame.RESIZABLE)
+        #self.screen = pygame.display.set_mode((self.width, self.height), pygame.FULLSCREEN)
 
         # use a black background
         self.bg_color = 0, 0, 0
