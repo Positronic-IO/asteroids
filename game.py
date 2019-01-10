@@ -71,6 +71,8 @@ class Calibration(object):
 
         self.offset_x = -635 
         self.offset_y = -515
+        self.scale_x = 3.45
+        self.scale_y = 3.4
 
         self.last_time = time.time()
         self.fps = 0
