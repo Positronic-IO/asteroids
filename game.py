@@ -303,8 +303,8 @@ class MyGame(object):
         self.width = display_info.current_w
         self.height = display_info.current_h
         
-        self.screen = pygame.display.set_mode((1024, 768), pygame.RESIZABLE)
-        #self.screen = pygame.display.set_mode((self.width, self.height), pygame.FULLSCREEN)
+        #self.screen = pygame.display.set_mode((1024, 768), pygame.RESIZABLE)
+        self.screen = pygame.display.set_mode((self.width, self.height), pygame.FULLSCREEN)
 
         # use a black background
         self.bg_color = 0, 0, 0
